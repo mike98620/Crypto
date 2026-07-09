@@ -23,6 +23,8 @@ const path = require('path');
 const TARGETS = [
   { label: 'BTC', source: 'binance', binanceSymbol: 'BTCUSDT', interval: '1h', limit: 300, strategy: 'sma' },
   { label: 'ETH', source: 'binance', binanceSymbol: 'ETHUSDT', interval: '1h', limit: 300, strategy: 'sma' },
+  { label: 'SOL', source: 'binance', binanceSymbol: 'SOLUSDT', interval: '1h', limit: 300, strategy: 'sma' },
+  { label: 'BNB', source: 'binance', binanceSymbol: 'BNBUSDT', interval: '1h', limit: 300, strategy: 'sma' },
   // 想再加其他幣種，複製上面一行改一下就好，例如：
   // { label: 'SOL', source: 'binance', binanceSymbol: 'SOLUSDT', interval: '4h', limit: 300, strategy: 'rsi' },
   // 若想用 CoinGecko 日線資料，格式改成：
