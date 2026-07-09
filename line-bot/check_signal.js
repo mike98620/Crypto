@@ -19,16 +19,25 @@ const fs = require('fs');
 const path = require('path');
 
 // ========================= 設定區（自己改這裡） =========================
-// TARGETS 是一個陣列，可以放任意多筆，每一筆各自獨立設定幣種/資料來源/週期/策略
-const TARGETS = [
-  { label: 'BTC', source: 'coingecko', coinGeckoId: 'bitcoin', days: 180, strategy: 'sma' },
-  { label: 'ETH', source: 'coingecko', coinGeckoId: 'ethereum', days: 180, strategy: 'sma' },
-  { label: 'SOL', source: 'coingecko', coinGeckoId: 'solana', days: 180, strategy: 'sma' },
-  { label: 'BNB', source: 'coingecko', coinGeckoId: 'binancecoin', days: 180, strategy: 'sma' },
+// COINS：要監控哪些幣種、用哪個資料來源
+const COINS = [
+  { label: 'BTC', source: 'coingecko', coinGeckoId: 'bitcoin', days: 180 },
+  { label: 'ETH', source: 'coingecko', coinGeckoId: 'ethereum', days: 180 },
+  { label: 'SOL', source: 'coingecko', coinGeckoId: 'solana', days: 180 },
+  { label: 'BNB', source: 'coingecko', coinGeckoId: 'binancecoin', days: 180 },
   // 想再加其他幣種，複製上面一行改一下就好，可用的 coinGeckoId 例如：
   // ripple(XRP) / dogecoin(DOGE) / cardano(ADA)
 ];
+
+// STRATEGIES：上面每一個幣種都會套用這裡列出的所有策略
+// 可選：'sma'（均線交叉） | 'rsi'（RSI超買超賣） | 'macd'（MACD交叉） | 'boll'（布林通道均值回歸）
+const STRATEGIES = ['sma', 'rsi', 'macd', 'boll'];
+
+// 如果只想讓某個幣種用特定策略（而不是套用全部），可以直接改成陣列覆寫，例如：
+// { label: 'BTC', source: 'coingecko', coinGeckoId: 'bitcoin', days: 180, strategies: ['sma','macd'] },
+// 有寫 strategies 的幣種會改用自己指定的清單，忽略上面全域的 STRATEGIES。
 // ======================================================================
+
 
 
 const STATE_FILE = path.join(__dirname, 'state', 'last_alert.json');
@@ -37,7 +46,7 @@ function loadState(){
   try{
     return JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
   }catch(e){
-    return {}; // { [label]: lastAlertKey }
+    return {}; // { "label_strategy": lastAlertKey }
   }
 }
 function saveState(state){
@@ -208,34 +217,25 @@ const STRATEGY_NAMES = {
 };
 
 // ---------- 主流程 ----------
-async function checkTarget(target){
+async function fetchCoinData(coin){
   let dates, prices, coinLabel;
-  if(target.source === 'binance'){
-    const r = await fetchBinance(target.binanceSymbol, target.interval, target.limit);
+  if(coin.source === 'binance'){
+    const r = await fetchBinance(coin.binanceSymbol, coin.interval, coin.limit);
     dates = r.dates; prices = r.prices;
-    coinLabel = `${target.label}（Binance ${target.interval}）`;
+    coinLabel = `${coin.label}（Binance ${coin.interval}）`;
   } else {
-    const r = await fetchCoinGecko(target.coinGeckoId, target.days);
+    const r = await fetchCoinGecko(coin.coinGeckoId, coin.days);
     dates = r.dates; prices = r.prices;
-    coinLabel = `${target.label}（CoinGecko 日線）`;
+    coinLabel = `${coin.label}（CoinGecko 日線）`;
   }
-
-  const { buySignal, sellSignal } = generateSignals(prices, target.strategy);
-  const last = prices.length - 1;
-  const baseKey = `${dates[last]}_${target.strategy}_${target.label}_${target.source}`;
-
-  let direction = null;
-  if(buySignal[last]) direction = 'buy';
-  else if(sellSignal[last]) direction = 'sell';
-
-  return { target, coinLabel, dates, prices, last, direction, baseKey };
+  return { dates, prices, coinLabel };
 }
 
 async function main(){
   console.log('開始檢查訊號...', new Date().toISOString());
 
-  if(TARGETS.length === 0){
-    console.log('TARGETS 是空的，請先在程式最上面設定要監控的幣種。');
+  if(COINS.length === 0){
+    console.log('COINS 是空的，請先在程式最上面設定要監控的幣種。');
     return;
   }
 
@@ -243,35 +243,53 @@ async function main(){
   const triggered = [];
   const errors = [];
 
-  for(const target of TARGETS){
+  for(const coin of COINS){
+    let dates, prices, coinLabel;
     try{
-      const r = await checkTarget(target);
-      if(!r.direction){
-        console.log(`[${target.label}] 無新訊號，最新K棒時間：${r.dates[r.last]}`);
+      const r = await fetchCoinData(coin);
+      dates = r.dates; prices = r.prices; coinLabel = r.coinLabel;
+    }catch(e){
+      console.error(`[${coin.label}] 抓取資料失敗：`, e.message);
+      errors.push(`${coin.label}：${e.message}`);
+      continue;
+    }
+
+    const strategiesToRun = coin.strategies || STRATEGIES;
+    const last = prices.length - 1;
+
+    for(const strategy of strategiesToRun){
+      const { buySignal, sellSignal } = generateSignals(prices, strategy);
+      let direction = null;
+      if(buySignal[last]) direction = 'buy';
+      else if(sellSignal[last]) direction = 'sell';
+
+      const stateKey = `${coin.label}_${strategy}`;
+
+      if(!direction){
+        console.log(`[${coin.label}/${strategy}] 無新訊號，最新K棒時間：${dates[last]}`);
         continue;
       }
-      const alertKey = r.baseKey + '_' + r.direction;
-      if(state[target.label] === alertKey){
-        console.log(`[${target.label}] 這個訊號已經通知過了，不重複發送。`);
+
+      const alertKey = `${dates[last]}_${strategy}_${coin.label}_${coin.source}_${direction}`;
+      if(state[stateKey] === alertKey){
+        console.log(`[${coin.label}/${strategy}] 這個訊號已經通知過了，不重複發送。`);
         continue;
       }
+
       triggered.push({
-        label: target.label,
-        coinLabel: r.coinLabel,
-        strategyName: STRATEGY_NAMES[target.strategy],
-        direction: r.direction,
-        date: r.dates[r.last],
-        price: r.prices[r.last],
+        stateKey,
+        coinLabel,
+        strategyName: STRATEGY_NAMES[strategy],
+        direction,
+        date: dates[last],
+        price: prices[last],
         alertKey
       });
-    }catch(e){
-      console.error(`[${target.label}] 檢查失敗：`, e.message);
-      errors.push(`${target.label}：${e.message}`);
     }
   }
 
   if(triggered.length === 0){
-    console.log('本次執行沒有任何幣種出現新訊號。');
+    console.log('本次執行沒有任何幣種/策略出現新訊號。');
     if(errors.length) console.log('但有錯誤：', errors.join('；'));
     return;
   }
@@ -285,9 +303,10 @@ async function main(){
   await pushLine(message);
   console.log('已推播：', message);
 
-  triggered.forEach(t => { state[t.label] = t.alertKey; });
+  triggered.forEach(t => { state[t.stateKey] = t.alertKey; });
   saveState(state);
 }
+
 
 main().catch(err => {
   console.error('執行失敗：', err);
