@@ -21,14 +21,12 @@ const path = require('path');
 // ========================= 設定區（自己改這裡） =========================
 // TARGETS 是一個陣列，可以放任意多筆，每一筆各自獨立設定幣種/資料來源/週期/策略
 const TARGETS = [
-  { label: 'BTC', source: 'binance', binanceSymbol: 'BTCUSDT', interval: '1h', limit: 300, strategy: 'sma' },
-  { label: 'ETH', source: 'binance', binanceSymbol: 'ETHUSDT', interval: '1h', limit: 300, strategy: 'sma' },
-  { label: 'SOL', source: 'binance', binanceSymbol: 'SOLUSDT', interval: '1h', limit: 300, strategy: 'sma' },
-  { label: 'BNB', source: 'binance', binanceSymbol: 'BNBUSDT', interval: '1h', limit: 300, strategy: 'sma' },
-  // 想再加其他幣種，複製上面一行改一下就好，例如：
-  // { label: 'SOL', source: 'binance', binanceSymbol: 'SOLUSDT', interval: '4h', limit: 300, strategy: 'rsi' },
-  // 若想用 CoinGecko 日線資料，格式改成：
-  // { label: 'ADA', source: 'coingecko', coinGeckoId: 'cardano', days: 180, strategy: 'macd' },
+  { label: 'BTC', source: 'coingecko', coinGeckoId: 'bitcoin', days: 180, strategy: 'sma' },
+  { label: 'ETH', source: 'coingecko', coinGeckoId: 'ethereum', days: 180, strategy: 'sma' },
+  { label: 'SOL', source: 'coingecko', coinGeckoId: 'solana', days: 180, strategy: 'sma' },
+  { label: 'BNB', source: 'coingecko', coinGeckoId: 'binancecoin', days: 180, strategy: 'sma' },
+  // 想再加其他幣種，複製上面一行改一下就好，可用的 coinGeckoId 例如：
+  // ripple(XRP) / dogecoin(DOGE) / cardano(ADA)
 ];
 // ======================================================================
 
