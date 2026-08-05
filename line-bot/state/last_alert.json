@@ -14,7 +14,7 @@
   "BNB_短期_macd": "2026-07-30 07:46_macd_BNB_短期_coingecko_buy",
   "BTC_短期_macd": "2026-08-04 16:05_macd_BTC_短期_coingecko_sell",
   "BTC_短期_boll": "2026-08-05 00:20_boll_BTC_短期_coingecko_sell",
-  "ETH_短期_rsi": "2026-07-27 20:00_rsi_ETH_短期_coingecko_sell",
+  "ETH_短期_rsi": "2026-08-06 06:17_rsi_ETH_短期_coingecko_sell",
   "BTC_短期_sma": "2026-07-26 15:16_sma_BTC_短期_coingecko_buy",
   "ETH_中長期_sma": "2026-07-18_sma_ETH_中長期_coingecko_buy",
   "SOL_短期_macd": "2026-07-30 07:45_macd_SOL_短期_coingecko_buy",
@@ -25,5 +25,6 @@
   "BNB_中長期_macd": "2026-07-25_macd_BNB_中長期_coingecko_sell",
   "SOL_中長期_boll": "2026-08-03_boll_SOL_中長期_coingecko_buy",
   "BNB_中長期_sma": "2026-08-05_sma_BNB_中長期_coingecko_buy",
-  "SOL_中長期_sma": "2026-08-05_sma_SOL_中長期_coingecko_sell"
+  "SOL_中長期_sma": "2026-08-05_sma_SOL_中長期_coingecko_sell",
+  "BNB_中長期_boll": "2026-08-06_boll_BNB_中長期_coingecko_sell"
 }
