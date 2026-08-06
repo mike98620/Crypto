@@ -26,5 +26,6 @@
   "SOL_中長期_boll": "2026-08-03_boll_SOL_中長期_coingecko_buy",
   "BNB_中長期_sma": "2026-08-05_sma_BNB_中長期_coingecko_buy",
   "SOL_中長期_sma": "2026-08-05_sma_SOL_中長期_coingecko_sell",
-  "BNB_中長期_boll": "2026-08-06_boll_BNB_中長期_coingecko_sell"
+  "BNB_中長期_boll": "2026-08-06_boll_BNB_中長期_coingecko_sell",
+  "BTC_中長期_macd": "2026-08-06_macd_BTC_中長期_coingecko_buy"
 }
