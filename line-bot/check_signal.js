@@ -20,20 +20,21 @@ const path = require('path');
 
 // ========================= 設定區（自己改這裡） =========================
 // COINS：要監控哪些幣種、用哪個資料來源
-// 每個幣種都設定「短期」（90天，小時線，適合抱倉幾小時到幾天）跟
-// 「中長期」（180天，日線，適合抱倉幾天到幾週甚至更久）兩種週期，各自獨立判斷、獨立追蹤，互不影響
+// 目前只保留「中長期」（180天，日線，適合抱倉幾天到幾週甚至更久），
+// 短期（90天，小時線）已移除，原因是訊號觸發較頻繁，容易提早耗盡 LINE 免費推播額度。
+// 如果之後想恢復短期監控，把下面對應的行取消註解即可。
 const COINS = [
-  { label: 'BTC', term: '短期',   source: 'coingecko', coinGeckoId: 'bitcoin',      days: 90 },
   { label: 'BTC', term: '中長期', source: 'coingecko', coinGeckoId: 'bitcoin',      days: 180 },
-  { label: 'ETH', term: '短期',   source: 'coingecko', coinGeckoId: 'ethereum',     days: 90 },
   { label: 'ETH', term: '中長期', source: 'coingecko', coinGeckoId: 'ethereum',     days: 180 },
-  { label: 'SOL', term: '短期',   source: 'coingecko', coinGeckoId: 'solana',       days: 90 },
   { label: 'SOL', term: '中長期', source: 'coingecko', coinGeckoId: 'solana',       days: 180 },
-  { label: 'BNB', term: '短期',   source: 'coingecko', coinGeckoId: 'binancecoin',  days: 90 },
   { label: 'BNB', term: '中長期', source: 'coingecko', coinGeckoId: 'binancecoin',  days: 180 },
-  // 想再加其他幣種，複製上面兩行（短期+中長期）改一下就好，可用的 coinGeckoId 例如：
+  // 恢復短期監控範例（取消註解即可）：
+  // { label: 'BTC', term: '短期', source: 'coingecko', coinGeckoId: 'bitcoin', days: 90 },
+  // { label: 'ETH', term: '短期', source: 'coingecko', coinGeckoId: 'ethereum', days: 90 },
+  // { label: 'SOL', term: '短期', source: 'coingecko', coinGeckoId: 'solana', days: 90 },
+  // { label: 'BNB', term: '短期', source: 'coingecko', coinGeckoId: 'binancecoin', days: 90 },
+  // 想再加其他幣種，複製上面一行改一下就好，可用的 coinGeckoId 例如：
   // ripple(XRP) / dogecoin(DOGE) / cardano(ADA)
-  // 如果某個幣種只想要單一週期，刪掉不需要的那一行即可
 ];
 
 // STRATEGIES：上面每一個幣種都會套用這裡列出的所有策略
