@@ -361,12 +361,24 @@ async function main(){
   });
   const message = `${lines.join('\n\n')}\n\n（僅為指標邏輯訊號，非投資建議，請自行判斷風險）`;
 
-  await pushLine(message);
-  console.log('已推播：', message);
-
-  triggered.forEach(t => { state[t.stateKey] = t.alertKey; });
-  saveState(state);
+  try{
+    await pushLine(message);
+    console.log('已推播：', message);
+    triggered.forEach(t => { state[t.stateKey] = t.alertKey; });
+    saveState(state);
+  }catch(e){
+    const msg = String(e.message || e);
+    if(msg.includes('429') || msg.includes('monthly limit')){
+      console.warn('LINE 推播失敗：本月免費推播額度可能已用完，這次的訊號暫時沒有送達，但不會讓整個流程失敗。');
+      console.warn('請到 LINE Official Account Manager（manager.line.biz）→ 分析 → 訊息，確認實際用量與額度。');
+      console.warn('本次偵測到的訊號未標記為已通知，額度恢復後的下一輪排程會自動重新嘗試推播。');
+    } else {
+      console.error('LINE 推播失敗（非額度問題）：', msg);
+    }
+    // 注意：這裡故意不呼叫 saveState，讓這次沒送達的訊號在下一輪排程時還會被視為「新訊號」重新嘗試推播
+  }
 }
+
 
 
 main().catch(err => {
